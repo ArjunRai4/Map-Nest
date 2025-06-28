@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const userRoutes=require('./routes/user.route');
+const safetyReportRoutes = require('./routes/safetyReport.route');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -25,6 +26,7 @@ if(process.env.NODE_ENV === 'development') {
 }
 
 app.use('/api/user',userRoutes);
+app.use('/api/report', safetyReportRoutes);
 
 app.get('/', (req, res) => {
     res.send('Welcome to MapNest API');
