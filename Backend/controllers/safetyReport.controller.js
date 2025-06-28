@@ -1,9 +1,11 @@
 const SafetyReport = require('../models/SafetyReport');
 const RoadSegment = require('../models/RoadSegment');
+const { getSeverityFromAI } = require('../utils/aiSafetyEngine');
 
 // POST /api/report
 // Create a new safety report
 const createReport = async (req, res) => {
+
   try {
     const { roadSegmentId, type, description, location } = req.body;
 
@@ -11,11 +13,14 @@ const createReport = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    const { aiTag, scoreImpact } = await getSeverityFromAI(description);
+
     const report = await SafetyReport.create({
       user: req.user.id,
       roadSegment: roadSegmentId,
       type,
       description,
+      aiTag,
       location: {
         type: 'Point',
         coordinates: location.coordinates,
@@ -25,6 +30,7 @@ const createReport = async (req, res) => {
     // Optionally add report to RoadSegment's reports[]
     await RoadSegment.findByIdAndUpdate(roadSegmentId, {
       $push: { reports: report._id },
+      $inc: {safetyScore: scoreImpact}, // Update safety score based on AI analysis
     });
 
     res.status(201).json({ success: true, report });
