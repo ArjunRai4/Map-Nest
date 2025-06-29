@@ -31,4 +31,3 @@ export function getNearestNode(lat, lng, nodes, threshold = 50) {
 
   return nearest;
 }
-

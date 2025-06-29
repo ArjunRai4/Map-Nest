@@ -33,3 +33,5 @@ Thumbs.db
 # Dependency lock files (optional: keep if you want consistency across installs)
 /frontend/package-lock.json
 /backend/package-lock.json
+
+/archive
