@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import './App.css'
-import SafeRouteMap from './components/SafeRouteMap';
-import axios from 'axios';
+import axiosInstance from './api/axiosInstance';
+import { useState } from 'react';
 
 function App() {
 
@@ -19,10 +19,10 @@ function App() {
 
         try {
           //step 1:trigger backend to fetch roads around user
-          await axios.post('/api/map/init',{lat,lng});
+          await axiosInstance.post('/map/init',{lat,lng});
 
           //step 2:fetch roads from session
-          const res=await axios.get('/api/map/roads');
+          const res=await axiosInstance.get('/map/roads');
           setRoads(res.data.roads || []);
         } catch (error) {
           console.error('Map fetch error:',error.message);
