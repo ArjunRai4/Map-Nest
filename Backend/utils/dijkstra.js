@@ -8,18 +8,25 @@ function dijkstra(graph, start, end) {
   pq.set(start, 0);
 
   while (pq.size > 0) {
-    // Pick node with smallest cost
     const [current] = [...pq.entries()].sort((a, b) => a[1] - b[1])[0];
     pq.delete(current);
     visited.add(current);
 
-    if (current === end) break;
+    if (current === end) {
+      console.log("✅ Reached destination:", current);
+      break;
+    }
 
-    for (const neighbor of graph[current] || []) {
+    if (!graph[current]) {
+      console.warn("⚠️ Node has no neighbors:", current);
+      continue;
+    }
+
+    for (const neighbor of graph[current]) {
       if (visited.has(neighbor.to)) continue;
 
       const alt = dist[current] + neighbor.cost;
-      if (alt < (dist[neighbor.to] || Infinity)) {
+      if (alt < (dist[neighbor.to] ?? Infinity)) {
         dist[neighbor.to] = alt;
         prev[neighbor.to] = current;
         pq.set(neighbor.to, alt);
@@ -30,14 +37,21 @@ function dijkstra(graph, start, end) {
   // Reconstruct path
   const path = [];
   let node = end;
-  while (node) {
+  while (node && prev[node] !== undefined) {
     path.unshift(node);
     node = prev[node];
   }
 
+  // Include the start node if path exists
+  if (path.length > 0) {
+    path.unshift(start);
+  }
+
+  const totalCost = typeof dist[end] === 'number' ? dist[end] : -1;
+
   return {
-    path: path.length > 1 ? path : [],
-    totalCost: dist[end] || -1,
+    path,
+    totalCost,
   };
 }
 

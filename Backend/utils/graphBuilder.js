@@ -15,7 +15,8 @@ function buildRoadGraph(segments) {
     const pointB = `${lat2.toFixed(6)},${lng2.toFixed(6)}`;
 
     const distance = haversine([lat1, lng1], [lat2, lng2]) / 1000; // in km
-    const dangerPenalty = (100 - (seg.safetyScore || 50)) / 100;  // 0 (very safe) to 1 (very dangerous)
+    const score = seg.safetyScore ?? 50;
+    const dangerPenalty = (100 - score) / 100;
     const cost = distance + dangerPenalty;
 
     if (!graph[pointA]) graph[pointA] = [];
@@ -23,6 +24,8 @@ function buildRoadGraph(segments) {
 
     graph[pointA].push({ to: pointB, cost });
     graph[pointB].push({ to: pointA, cost }); // undirected
+
+    console.log("Added edge from", pointA, "to", pointB, "with cost", cost);
   }
 
   return graph;

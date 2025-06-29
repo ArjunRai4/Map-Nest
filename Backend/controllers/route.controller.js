@@ -1,6 +1,9 @@
 const RoadSegment = require('../models/RoadSegment');
 const { buildRoadGraph } = require('../utils/graphBuilder');
 const { dijkstra } = require('../utils/dijkstra');
+const SafetyReport = require('../models/SafetyReport');
+const { generateRouteExplanation } = require('../utils/aiSafetyEngine');
+
 
 
 // GET /api/route/safest-path?startLat=...&startLng=...&endLat=...&endLng=...
@@ -17,6 +20,7 @@ const getSafestRoute = async (req, res) => {
   try {
     const segments = await RoadSegment.find({});
     const graph = buildRoadGraph(segments);
+
     const { path, totalCost } = dijkstra(graph, start, end);
 
     const pathCoords = path.map(p => {
@@ -24,7 +28,30 @@ const getSafestRoute = async (req, res) => {
       return [lat, lng];
     });
 
-    res.status(200).json({ success: true, path: pathCoords, totalCost });
+    // Fetch recent safety reports near the path
+    const pathReports = await SafetyReport.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [
+              parseFloat(endLng), // last point in path
+              parseFloat(endLat),
+            ],
+          },
+          $maxDistance: 1500,
+        },
+      },
+    }).limit(10);
+
+    const aiExplanation = await generateRouteExplanation(pathReports);
+
+    res.status(200).json({
+       success: true,
+       path: pathCoords, 
+       totalCost, 
+       explanation: aiExplanation
+    });
   } catch (err) {
     console.error('Routing error:', err.message);
     res.status(500).json({ message: 'Server error' });
